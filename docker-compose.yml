@@ -6,34 +6,38 @@ services:
       POSTGRES_PASSWORD: ayursage
       POSTGRES_DB: ayursage
     volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ayursage"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
     ports:
       - "5432:5432"
 
-  api:
+  backend:
     build: ./backend
-    environment:
-      DATABASE_URL: postgresql://ayursage:ayursage@db:5432/ayursage
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      CORS_ORIGINS: http://localhost:8080,http://localhost:5173
     depends_on:
       db:
         condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://ayursage:ayursage@db:5432/ayursage
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      CORS_ORIGINS: http://localhost:3000,http://localhost:5173
+      ENVIRONMENT: production
+      # Optional: set LLM_API_KEY to enable the model-phrased assistant layer.
+      LLM_API_KEY: ${LLM_API_KEY:-}
     ports:
       - "8000:8000"
 
-  web:
+  frontend:
     build: .
     depends_on:
-      - api
+      - backend
+    environment:
+      VITE_API_URL: /api
     ports:
-      - "8080:80"
+      - "3000:80"
 
 volumes:
-  db_data:
+  pgdata:

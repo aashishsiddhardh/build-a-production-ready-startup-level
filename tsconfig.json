@@ -16,13 +16,12 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
-    "types": ["node", "vitest/globals"]
+    "types": ["vitest/globals", "@testing-library/jest-dom"]
   },
-  "include": ["src", "vite.config.ts", "vite.singlefile.config.ts"]
+  "include": ["src", "vite.config.ts", "vite.singlefile.config.ts"],
+  "exclude": ["node_modules", "dist", "backend"]
 }

@@ -8,83 +8,77 @@
   }
 
   html {
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-sage-50 text-sage-950 font-sans antialiased;
+    @apply bg-sage-50 text-ink-800 antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
-  h1, h2, h3, h4 {
-    @apply font-display tracking-tight;
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-serif tracking-tight text-ink-900;
   }
 
   ::selection {
-    @apply bg-turmeric-200 text-clay-950;
+    @apply bg-turmeric-200 text-ink-900;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-sage-200;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-sage-300;
   }
 }
 
 @layer components {
-  .card {
-    @apply rounded-2xl border border-sage-100 bg-white shadow-sm;
-  }
-
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
-           transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
-           focus-visible:ring-sage-400 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
-
   .btn-primary {
-    @apply btn bg-sage-600 text-white hover:bg-sage-700 active:bg-sage-800 shadow-sm;
+    @apply btn bg-sage-700 text-white shadow-soft hover:bg-sage-800 active:scale-[0.98];
   }
-
-  .btn-secondary {
-    @apply btn bg-white text-sage-800 border border-sage-200 hover:bg-sage-50;
+  .btn-accent {
+    @apply btn bg-turmeric-500 text-white shadow-soft hover:bg-turmeric-600 active:scale-[0.98];
   }
-
   .btn-ghost {
-    @apply btn text-sage-700 hover:bg-sage-100;
+    @apply btn bg-transparent text-ink-700 hover:bg-sage-100;
   }
-
-  .btn-danger {
-    @apply btn bg-red-600 text-white hover:bg-red-700;
+  .btn-outline {
+    @apply btn border border-sage-300 bg-white text-ink-800 hover:border-sage-400 hover:bg-sage-50;
   }
-
+  .card {
+    @apply rounded-2xl border border-sage-100 bg-white shadow-card;
+  }
   .input {
-    @apply w-full rounded-xl border border-sage-200 bg-white px-3.5 py-2.5 text-sm text-sage-950
-           placeholder:text-sage-400 focus:border-sage-400 focus:outline-none focus:ring-2 focus:ring-sage-200;
+    @apply w-full rounded-xl border border-sage-200 bg-white px-4 py-2.5 text-sm text-ink-900 placeholder:text-ink-400 transition focus:border-sage-400 focus:outline-none focus:ring-2 focus:ring-sage-200;
   }
-
   .label {
-    @apply block text-sm font-medium text-sage-800 mb-1.5;
+    @apply mb-1.5 block text-sm font-medium text-ink-700;
   }
-
   .chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium
-           transition-colors cursor-pointer select-none;
+    @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium;
   }
-
-  .chip-off {
-    @apply chip border-sage-200 bg-white text-sage-700 hover:border-sage-300 hover:bg-sage-50;
-  }
-
-  .chip-on {
-    @apply chip border-sage-500 bg-sage-500 text-white shadow-sm;
+  .section-title {
+    @apply font-serif text-3xl font-semibold text-ink-900 sm:text-4xl;
   }
 }
 
-/* Thin, tasteful scrollbars */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #c7d9c0 transparent;
-}
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-*::-webkit-scrollbar-thumb {
-  background: #c7d9c0;
-  border-radius: 9999px;
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .grain {
+    background-image: radial-gradient(rgba(43, 58, 37, 0.05) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
 }

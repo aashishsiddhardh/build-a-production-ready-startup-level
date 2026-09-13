@@ -1,37 +1,33 @@
-"""Password hashing + JWT helpers for the reference backend."""
+"""Password hashing (bcrypt) and JWT helpers."""
 from __future__ import annotations
 
-import os
 from datetime import datetime, timedelta, timezone
 
-from jose import jwt
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-_pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from app.config import get_settings
 
-JWT_SECRET = os.getenv("JWT_SECRET", "change-me-in-production")
-JWT_ALG = os.getenv("JWT_ALG", "HS256")
-JWT_EXPIRE_MINUTES = int(os.getenv("JWT_EXPIRE_MINUTES", "10080"))
+settings = get_settings()
+_pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
     return _pwd.hash(password)
 
 
-def verify_password(password: str, hashed: str) -> bool:
-    return _pwd.verify(password, hashed)
+def verify_password(password: str, password_hash: str) -> bool:
+    return _pwd.verify(password, password_hash)
 
 
-def create_access_token(subject: str, role: str = "user") -> str:
-    now = datetime.now(timezone.utc)
-    payload = {
-        "sub": subject,
-        "role": role,
-        "iat": int(now.timestamp()),
-        "exp": int((now + timedelta(minutes=JWT_EXPIRE_MINUTES)).timestamp()),
-    }
-    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALG)
+def create_access_token(subject: str, role: str) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes)
+    payload = {"sub": subject, "role": role, "exp": expire}
+    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
-def decode_token(token: str) -> dict:
-    return jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALG])
+def decode_token(token: str) -> dict | None:
+    try:
+        return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
+    except JWTError:
+        return None

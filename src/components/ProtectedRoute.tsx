@@ -1,27 +1,32 @@
-import { Navigate, useLocation } from 'react-router-dom'
-import type { ReactNode } from 'react'
-import { useAuth } from '@/context/AuthContext'
-import { Spinner } from '@/components/ui'
+import type { ReactNode } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 
-export function ProtectedRoute({ children, adminOnly = false }: { children: ReactNode; adminOnly?: boolean }) {
-  const { user, loading } = useAuth()
-  const location = useLocation()
+export function ProtectedRoute({
+  children,
+  requireAdmin = false,
+}: {
+  children: ReactNode;
+  requireAdmin?: boolean;
+}) {
+  const { user, ready } = useAuth();
+  const location = useLocation();
 
-  if (loading) {
+  if (!ready) {
     return (
-      <div className="grid min-h-[60vh] place-items-center text-sage-500">
-        <Spinner className="h-8 w-8" />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-sage-200 border-t-sage-600" />
       </div>
-    )
+    );
   }
 
   if (!user) {
-    return <Navigate to="/login" state={{ from: location.pathname }} replace />
+    return <Navigate to={`/login?redirect=${encodeURIComponent(location.pathname)}`} replace />;
   }
 
-  if (adminOnly && user.role !== 'admin') {
-    return <Navigate to="/app" replace />
+  if (requireAdmin && user.role !== 'admin') {
+    return <Navigate to="/" replace />;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }

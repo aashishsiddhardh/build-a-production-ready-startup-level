@@ -1,46 +1,54 @@
-# Safety model
+# AyurSage — Safety Architecture
 
-AyurSage is an **educational wellness** tool. It is **not** a medical device and
-does **not** provide medical advice, diagnosis, or treatment.
+AyurSage is built on a single principle: **medical safety is deterministic; AI only handles language.** This document describes how that boundary is enforced.
 
-## Hard guarantees (enforced in code)
+## The two systems
 
-The system is designed so the following can never happen, regardless of what the
-AI layer produces:
+| Concern | System | Can AI change it? |
+|---|---|---|
+| Emergency triage | Deterministic rules | **No** |
+| Contraindication gate | Deterministic rules | **No** |
+| Drug-interaction gate | Deterministic rules | **No** |
+| Recommendation scoring | Deterministic, transparent weights | **No** |
+| Understanding free-text | AI / NLP | n/a |
+| Explaining results | AI (RAG, grounded) | n/a |
 
-| Guarantee | How it is enforced |
-|---|---|
-| **Never diagnose or prescribe** | The app only surfaces *traditional associations* and general lifestyle information. No dosing instructions are generated; wording is templated and reviewed. |
-| **Never guarantee cures** | Copy and the assistant system prompt forbid outcome claims; evidence is always tiered. |
-| **Never invent evidence/citations** | Evidence tiers describe the *type/strength* of support (traditional → strong) in general terms. No fabricated studies, DOIs, or citations are ever produced. The LLM is constrained to the provided KB context. |
-| **Never recommend stopping medication** | Explicit disclaimers on every result; the assistant refuses and defers to a clinician/pharmacist. |
-| **No herbs in emergencies / high-risk** | `runTriage()` is a deterministic gate that runs *before* any recommendation. Emergency, pediatric, pregnancy-danger, and self-harm signals block herbal output and show escalation guidance. |
+The AI layer is **downstream** of every safety decision and is never given the authority to un-block a herb, re-rank past a safety gate, or overrule triage.
 
-## The two deterministic safety gates
+## Pipeline
 
-### Gate #1 — Emergency triage (`src/lib/safety/triage.ts`)
-Exact/keyword matching against a conservative red-flag rule set
-(`src/data/emergencyRules.ts`): cardiac, stroke (FAST), breathing, anaphylaxis,
-bleeding, neurological, severe abdominal pain, self-harm, and pregnancy danger
-signs. Any emergency match → `blockRecommendations = true`. Pediatric mentions are
-routed to a clinician. This layer never calls a model.
+1. **Emergency triage** (`engine/triage.ts`, `backend/app/engine/triage.py`)
+   - Structured red-flag questions (yes/no) + a broad keyword scan of the narrative.
+   - Fail-safe: false positives (routing to care) are acceptable; false negatives are not.
+   - Any emergency match → `blockRecommendations = true` and **zero** herbal suggestions.
 
-### Gate #2 — Contraindications + interactions (`src/lib/safety/contraindications.ts`)
-Each herb/formulation carries structured `contraindications`, `drugInteractions`,
-and a `pregnancy` category. Against the user's declared conditions, medications,
-and pregnancy status:
-- `avoid`-level findings **block** the item (removed before scoring, shown in
-  "filtered out for your safety").
-- `caution` / `info` findings are **surfaced** on the card and reduce the safety
-  component of the score, but do not block.
+2. **Dosha analysis** (`engine/doshaAssessment.ts`)
+   - Deterministic scoring of the Prakriti quiz → vata/pitta/kapha percentages.
+   - Current imbalance (vikriti) inferred from selected concerns.
 
-## Human-in-the-loop expectations
-Every result repeats that the user should consult a qualified professional —
-especially before combining herbs with medications, during pregnancy or
-breastfeeding, or with any chronic condition.
+3. **Safety gate** (`engine/safety.ts`)
+   - Derives effective flags from the profile (pregnancy, breastfeeding, age→child, conditions).
+   - A herb is **blocked** on any `avoid` contraindication or `severe` interaction; **caution** on softer matches.
+   - Blocked herbs are removed from ranking and shown in a separate "withheld for your safety" list.
 
-## Testing
-The safety layer is covered by unit tests (`src/test/*.test.ts`): triage
-classification, contraindication/interaction blocking, scoring transparency, and
-end-to-end engine behaviour (including that contraindicated herbs are never
-recommended). Run `npm run test`.
+4. **Explainable scoring** (`engine/recommender.ts`)
+   - Transparent additive weights: concern match, dosha alignment, evidence bonus, caution penalty.
+   - Every recommendation exposes its full factor breakdown and a plain-language rationale.
+   - The score is a **fit-to-profile** signal, explicitly *not* a medical-effectiveness or certainty claim.
+
+5. **Assistant guardrails** (`engine/assistant.ts`)
+   - Runs triage on every message first (emergency → stop, route to care).
+   - Detects medication-stopping intent (verb + medication noun) → refuses and redirects to the prescriber.
+   - Reframes diagnosis/cure requests.
+   - Only then retrieves KB chunks and composes a grounded, cited answer.
+
+## Evidence integrity
+
+- Four conservative tiers: `traditional`, `preclinical`, `preliminary-clinical`, `moderate-clinical`.
+- Citations reference **real classical texts by name** and **categories** of modern literature by study type. AyurSage does not fabricate specific trials, DOIs or results, and the UI states that references are educational pointers to be verified against primary sources.
+
+## What is never done
+
+- No diagnosis, no prescription, no dosing directives, no cure guarantees.
+- Never recommends stopping/altering prescribed medication.
+- No herbal recommendations during emergencies or high-risk situations.

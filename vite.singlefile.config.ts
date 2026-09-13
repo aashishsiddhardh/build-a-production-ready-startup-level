@@ -1,10 +1,10 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { viteSingleFile } from 'vite-plugin-singlefile'
-import path from 'node:path'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import { viteSingleFile } from 'vite-plugin-singlefile';
+import path from 'node:path';
 
-// Produces a single, fully self-contained index.html (all JS/CSS inlined,
-// zero external asset requests) for the standalone preview.
+// Dedicated build that inlines every JS/CSS asset into a single self-contained
+// index.html for the zero-dependency live preview.
 export default defineConfig({
   plugins: [react(), viteSingleFile()],
   resolve: {
@@ -13,7 +13,7 @@ export default defineConfig({
     },
   },
   build: {
-    outDir: 'dist-singlefile',
+    outDir: 'dist-preview',
     cssCodeSplit: false,
     assetsInlineLimit: 100000000,
     chunkSizeWarningLimit: 100000000,
@@ -24,4 +24,4 @@ export default defineConfig({
       },
     },
   },
-})
+});
