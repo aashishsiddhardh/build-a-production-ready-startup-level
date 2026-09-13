@@ -9,7 +9,11 @@ export function ScoreMeter({ score, className }: { score: number; className?: st
   const color = clamped >= 66 ? '#4c683c' : clamped >= 40 ? '#d9861f' : '#a85e4d';
 
   return (
-    <div className={cn('relative inline-flex h-16 w-16 items-center justify-center', className)}>
+    <div
+      className={cn('relative inline-flex h-16 w-16 items-center justify-center', className)}
+      role="img"
+      aria-label={`Fit score ${clamped} out of 100`}
+    >
       <svg className="h-16 w-16 -rotate-90" viewBox="0 0 64 64">
         <circle cx="32" cy="32" r={radius} fill="none" stroke="#e5ecdf" strokeWidth="6" />
         <circle
@@ -25,7 +29,10 @@ export function ScoreMeter({ score, className }: { score: number; className?: st
           className="transition-all duration-700"
         />
       </svg>
-      <span className="absolute text-sm font-bold tabular-nums text-ink-900">{clamped}</span>
+      <span className="absolute flex flex-col items-center leading-none">
+        <span className="text-base font-bold tabular-nums text-ink-900">{clamped}</span>
+        <span className="text-[8px] font-semibold uppercase tracking-wide text-ink-400">/ 100</span>
+      </span>
     </div>
   );
 }

@@ -19,14 +19,22 @@ export function EvidenceBadge({
 }) {
   const meta = EVIDENCE_META[level];
   return (
-    <span className={cn('chip', TONE[meta.tone], className)} title={meta.blurb}>
-      {withIcon && <FlaskConical className="h-3.5 w-3.5" />}
+    <span
+      className={cn('chip font-semibold', TONE[meta.tone], className)}
+      title={meta.blurb}
+      role="img"
+      aria-label={`Evidence level: ${meta.label} — tier ${meta.rank} of 4`}
+    >
+      {withIcon && <FlaskConical className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />}
       {meta.label}
-      <span className="ml-0.5 flex gap-0.5" aria-hidden="true">
+      <span className="ml-0.5 flex items-center gap-[3px]" aria-hidden="true">
         {[1, 2, 3, 4].map((i) => (
           <span
             key={i}
-            className={cn('h-1.5 w-1.5 rounded-full', i <= meta.rank ? 'bg-current' : 'bg-current/20')}
+            className={cn(
+              'h-2.5 w-1 rounded-full transition-colors',
+              i <= meta.rank ? 'bg-current' : 'bg-current/20',
+            )}
           />
         ))}
       </span>
